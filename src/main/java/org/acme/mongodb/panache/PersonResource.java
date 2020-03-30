@@ -28,40 +28,53 @@ public class PersonResource {
 
     @GET
     @Path("/{id}")
-    public PersonDto get(@PathParam("id") String id){
+    public Response get(@PathParam("id") String id){
         Person person = Person.findById(new ObjectId(id));
-
-        return personMapper.map(person);
+        PersonDto personDto = personMapper.map(person);
+        if (person == null)
+            return Response.status(Response.Status.NO_CONTENT).build();
+        return Response.status(Response.Status.FOUND).entity(personDto).build();
     }
 
     @POST
     public Response create(PersonDto personDto){
         Person p = personMapper.map(personDto);
-                p.persist();
-        return Response.status(Response.Status.CREATED).entity(p).build();
+        p.persist();
+        PersonDto personDtoResult = personMapper.map(p);
+        return Response.status(Response.Status.CREATED).entity(personDtoResult).build();
     }
 
     @PUT
     @Path("/{id}")
-    public void update(@PathParam("id") String id, PersonDto personDto)
+    public Response update(@PathParam("id") String id, PersonDto personDto)
     {
-
-        personMapper.map(personDto).update();
+        Person p = personMapper.map(personDto);
+        p.id = new ObjectId(id);
+        p.update();
+        PersonDto personResult = personMapper.map(p);
+        return Response.status(Response.Status.ACCEPTED).entity(personResult).build();
     }
 
     @DELETE
     @Path("/{id}")
-    public void delete(@PathParam("id") String id){
+    public Response delete(@PathParam("id") String id){
         Person person = Person.findById(new ObjectId(id));
+
         person.delete();
+
+        PersonDto personDelete = personMapper.map(person);
+        return Response.status(Response.Status.ACCEPTED).entity(personDelete).build();
     }
 
     @GET
     @Path("/search/{name}")
-    public PersonDto search(@PathParam("name") String name){
+    public Response search(@PathParam("name") String name){
         Person p = Person.findByName(name);
         PersonDto person = personMapper.map(p);
-        return person;
+        if (person == null)
+            return Response.status(Response.Status.NO_CONTENT).build();
+        return Response.status(Response.Status.FOUND).entity(person).build();
+
     }
 
     @GET
